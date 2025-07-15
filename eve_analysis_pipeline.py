@@ -8,8 +8,10 @@ from scipy.signal import savgol_filter, find_peaks
 from openpyxl.drawing.image import Image as XLImage
 from openpyxl import load_workbook
 from scipy.stats import ttest_ind
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
-parent_folder = "/Users/shaheenkabir/METU/testing/ISO1"   # Change the folder name accordingly.
+parent_folder = "/Users/shaheenkabir/parent/ISO2_eve"   # Change the folder name accordingly.
 FOLDER_PATTERN = "ISO*"                                   # Change the pattern accordingly.
 log_path = os.path.join(parent_folder, "pipeline_log.txt")
 with open(log_path, "w") as log:
@@ -32,7 +34,6 @@ for input_folder in matched_folders:
             input_path = os.path.join(input_folder, filename)
             output_path = os.path.join(output_folder, f"processed_{filename}")
             temp_plot_path = "temp_plot.png"
-            print(f"📄 Processing {filename}...")
             try:
                 data = pd.read_excel(input_path)
                 length = data.iloc[:, 0]
@@ -51,10 +52,10 @@ for input_folder in matched_folders:
                 change_point_flags = (change_points < 0).astype(int)
 
                 # Detect peaks
-                peaks, _ = find_peaks(smoothed, distance=5, prominence=0.01)
+                peaks, _ = find_peaks(smoothed, distance=10, prominence=0.03)  # Optimal is 0.03 prominence.
                 peak_percent_lengths = percent_length.iloc[peaks].values
                 peak_values = smoothed[peaks]
-                valid_peak_mask = (peak_percent_lengths > 28) & (peak_percent_lengths <85)
+                valid_peak_mask = (peak_percent_lengths > 28) & (peak_percent_lengths <85) # based on mutation.
                 peak_percent_lengths = peak_percent_lengths[valid_peak_mask]
                 peak_values = peak_values[valid_peak_mask]
 
@@ -106,14 +107,11 @@ for input_folder in matched_folders:
                 if len(closest_matches) != 7:
                     with open(log_path, "a") as log:
                         log.write(f"❌ {filename}: Found {len(closest_matches)} stripes, not 7 → skipped.\n")
-                    print(f"⚠️ Skipping {file}: found {len(matched_stripes)} stripes, not exactly 7.")
+                    print(f"⚠️ Skipping {filename}: found {len(closest_matches)} stripes, not exactly 7.")
                     continue  # Skip rest of the loop
 
                 # First 3 stripes
                 stripes = closest_matches[:3]
-                while len(stripes) < 3:
-                    stripes.append(None)
-
                 wb.save(output_path)
                 os.remove(temp_plot_path)
 
@@ -131,7 +129,6 @@ for input_folder in matched_folders:
                     squeezed_macro_df = macro_df.iloc[indices].reset_index(drop=True)
                     with pd.ExcelWriter(output_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
                         squeezed_macro_df.to_excel(writer, sheet_name='Macro_600points', index=False)
-                    print(f"📉 Added 'Macro_600points' to: {output_path}")
                 except Exception as e:
                     print(f"❌ Error creating Macro_600points sheet for {filename}: {e}")
 
@@ -141,7 +138,6 @@ for input_folder in matched_folders:
                     "Stripe-2": stripes[1],
                     "Stripe-3": stripes[2]
                 })
-                print(f"✅ Done: {output_path}")
             except Exception as e:
                 print(f"❌ Error processing {filename}: {e}")
 
@@ -192,7 +188,6 @@ for input_folder in matched_folders:
     matched_all_df = pd.DataFrame(all_matched_rows)
     with pd.ExcelWriter(summary_output_path, engine='openpyxl', mode='a') as writer:
         matched_all_df.to_excel(writer, sheet_name="7_Stripes", index=False)
-    print(f"📄 Added 7_Stripe sheet  to: {summary_output_path}")
 
     wb = load_workbook(summary_output_path)
     df_7 = pd.read_excel(summary_output_path, sheet_name="7_Stripes")
@@ -204,16 +199,13 @@ for input_folder in matched_folders:
     with pd.ExcelWriter(summary_output_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
         for sheet_name, cols in stripe_groups.items():
             group_df = df_7[["File"] + cols].copy()
-            group_df["Average"] = group_df[cols].mean(axis=1, skipna=True)
-            group_df["STDEV.S"] = group_df[cols].std(axis=1, ddof=1, skipna=True)
-            avg_row = pd.DataFrame([["AVERAGE"] + group_df[cols + ["Average", "STDEV.S"]].mean().tolist()],
+            avg_row = pd.DataFrame([["AVERAGE"] + group_df[cols].mean().tolist()],
                                    columns=group_df.columns)
-            stdev_row = pd.DataFrame([["STDEV.S"] + group_df[cols + ["Average", "STDEV.S"]].std(ddof=1).tolist()],
+            stdev_row = pd.DataFrame([["STDEV.S"] + group_df[cols].std(ddof=1).tolist()],
                                      columns=group_df.columns)
             blank_row = pd.DataFrame([[None] * len(group_df.columns)], columns=group_df.columns)
             final_df = pd.concat([group_df, blank_row, avg_row, stdev_row], ignore_index=True)
             final_df.to_excel(writer, sheet_name=sheet_name, index=False)
-    print("✅ Added Stripes_1-2, Stripes_3-4, and Stripes_5-7 sheets with Average and STDEV.S.")
 
     wb = load_workbook(summary_output_path)
     ws = wb.active  # or wb["7_Stripes"] if you want to be explicit
@@ -262,7 +254,6 @@ for input_folder in matched_folders:
             sample_names.append(label)
             macro_percent_cols.append(percent_squeezed.rename(label))
             macro_intensity_cols.append(intensity_squeezed.rename(label))
-            print(f"✔️ Processed macro sheet from: {fname}")
         except Exception as e:
             print(f"❌ Skipping {fname}: {e}")
 
@@ -276,7 +267,6 @@ for input_folder in matched_folders:
     with pd.ExcelWriter(combined_macro_path) as writer:
         percent_df.to_excel(writer, sheet_name="Percent Length", index=False)
         intensity_df.to_excel(writer, sheet_name="Inverted Intensity", index=False)
-    print(f"📊 Final combined macro saved to: {combined_macro_path}")
 
 # Creating all average summary file.
 output_combined_file = os.path.join(parent_folder, "all_avg_summary.xlsx")
@@ -296,7 +286,6 @@ for subdir in matched_folders:
             labels.append(name)
             length_averages.append(avg_length.rename(name))
             intensity_averages.append(avg_intensity.rename(name))
-            print(f"✅ Extracted averages from: {name}")
         except Exception as e:
             print(f"⚠️ Could not extract from {subdir}: {e}")
     else:
@@ -305,11 +294,15 @@ for subdir in matched_folders:
 length_avg_df = pd.concat(length_averages, axis=1)
 intensity_avg_df = pd.concat(intensity_averages, axis=1)
 output_combined_file = os.path.join(parent_folder, "all_avg_summary.xlsx")
-mode = "a" if os.path.exists(output_combined_file) else "w"
-with pd.ExcelWriter(output_combined_file, engine="openpyxl", mode=mode, if_sheet_exists="replace") as writer:
+if os.path.exists(output_combined_file):
+    mode = "a"
+    if_sheet_exists = "replace"
+else:
+    mode = "w"
+    if_sheet_exists = None
+with pd.ExcelWriter(output_combined_file, engine="openpyxl", mode=mode, if_sheet_exists= if_sheet_exists) as writer:
     length_avg_df.to_excel(writer, sheet_name="Average Percent Length", index=False)
     intensity_avg_df.to_excel(writer, sheet_name="Average Intensity", index=False)
-print(f"\n📈 Final summary of averages saved to: {output_combined_file}")
 
 # Plot all average curves
 plt.figure(figsize=(7, 5))
@@ -323,7 +316,6 @@ plt.tight_layout()
 plot_path = os.path.join(parent_folder, "average_plot.png")
 plt.savefig(plot_path, dpi=300)
 plt.close()
-print(f"🖼️ Plot saved to: {plot_path}")
 
 # Folder map
 folders = glob.glob(os.path.join(parent_folder, FOLDER_PATTERN))
@@ -352,6 +344,23 @@ def load_stripe_column(folder_key, stripe_n):
     else:
         print(f"⚠️ Column '{col_name}' not found in '7_Stripes' sheet of {path}")
         return np.array([])
+
+# === Check if required folders exist ===
+required_groups = ["22", "25", "29"]
+missing = []
+print("Starting comparison between temperature groups.")
+
+for grp in required_groups:
+    pattern = os.path.join(parent_folder, f"*_{grp}")
+    matches = glob.glob(pattern)
+    if not matches:
+        missing.append(f"No match for pattern: {pattern}")
+if missing:
+    print("❌ One or more required groups are missing!")
+    for m in missing:
+        print(f"   ➜ Missing: {m}")
+    print("⛔️ Aborting comparisons.")
+    exit(1)  # or sys.exit(1)
 
 # Comparison
 comparisons = [("22", "25"), ("25", "29"), ("22", "29")]
@@ -390,8 +399,6 @@ for group1, group2 in comparisons:
             sig_row = len(df) + 2  # add +1 because Excel is 1-based indexing
             worksheet.write(sig_row-1 , 1, sig_text, sig_format)
             sheets_added += 1
-            print(f"✅ Sheet 'Stripe-{stripe_n}' done for {group1} vs {group2}")
-
     if sheets_added == 0:
         print(f"❌ No sheets added for {group1}_vs_{group2}, deleting empty file.")
         try:
@@ -399,4 +406,5 @@ for group1, group2 in comparisons:
         except FileNotFoundError:
             pass
 
-print("🎉 All comparisons done!")
+print("🎉 All analyses done!")
+print("Good Luck!")
