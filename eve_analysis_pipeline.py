@@ -380,10 +380,10 @@ for group1, group2 in comparisons:
                 f"{group2}": pd.Series(data2)
             })
             blank_row = pd.DataFrame([[None, None]], columns=df.columns)
-            t_stat, p_val = ttest_ind(data1, data2, equal_var=False, alternative='less')
+            t_stat, p_val = ttest_ind(data1, data2, equal_var=False, alternative='two-sided')
 
-            if p_val > 0.5:
-                p_val = 1 - p_val
+            #if p_val > 0.5:
+             #   p_val = 1 - p_val
 
             t_stat_row = pd.DataFrame([["t-stat", t_stat]], columns=df.columns)
             p_val_row = pd.DataFrame([["p-value", p_val]], columns=df.columns)
