@@ -4,9 +4,9 @@ library(gridExtra)
 library(grid)
 library(ggpubr)
 
-df1 <- read_excel("/Users/shaheenkabir/METU/testing/MASS/mass_22/results/stripe_summary.xlsx", sheet = "7_Stripes")
-df2 <- read_excel("/Users/shaheenkabir/METU/testing/MASS/mass_25/results/stripe_summary.xlsx", sheet = "7_Stripes")
-df3 <- read_excel("/Users/shaheenkabir/METU/testing/MASS/mass_29/results/stripe_summary.xlsx", sheet = "7_Stripes")
+df1 <- read_excel("/Users/shaheenkabir/eve_all_combined/ORE/ORE_22/results/stripe_summary.xlsx", sheet = "7_Stripes")
+df2 <- read_excel("/Users/shaheenkabir/eve_all_combined/ORE/ORE_25/results/stripe_summary.xlsx", sheet = "7_Stripes")
+df3 <- read_excel("/Users/shaheenkabir/eve_all_combined/ORE/ORE_29/results/stripe_summary.xlsx", sheet = "7_Stripes")
 df1
 df1_st1 <- data.frame(Stripe = df1$`Stripe-1`) %>% mutate(condition = "22C")
 df1_st2 <- data.frame(Stripe = df1$`Stripe-2`) %>% mutate(condition = "22C")
@@ -54,10 +54,11 @@ st34 <- rbind(stripe3.df, stripe4.df)
 st567 <- rbind(stripe5.df, stripe6.df, stripe7.df)
 
 comparisons <- list(c("22C", "25C"), c("22C", "29C"), c("25C", "29C"))
+colors <- c("22C" = "#cce5ff", "25C" = "#3399ff", "29C" = "#003366") 
 
 # Plot
 pic1 <- ggplot(st12, aes(x = condition, y = Stripe, fill = condition)) +
-  geom_boxplot(fatten = 0) +
+  geom_boxplot(fatten = NULL) +
   stat_summary(fun = mean, geom = "crossbar", 
                width = 0.75, color = "red", size = 0.2) +
   stat_boxplot(geom = "errorbar", width = 0.2) +
@@ -66,7 +67,8 @@ pic1 <- ggplot(st12, aes(x = condition, y = Stripe, fill = condition)) +
   stat_compare_means(
     comparisons = comparisons,
     method = "t.test",
-    label = "p.signif"
+    label = "p.signif",
+    hide.ns = T
   ) +
   theme_bw() +
   labs(x = "Condition", y = "Percent Length (%)") +
@@ -75,10 +77,12 @@ pic1 <- ggplot(st12, aes(x = condition, y = Stripe, fill = condition)) +
         axis.text = element_text(face = 'bold', size = 12),
         strip.text = element_text(face = "bold"),
         legend.key.size = unit(0.9, "cm"), 
-        legend.text = element_text(size = 12))
+        legend.text = element_text(size = 12),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank())
 
 pic2 <- ggplot(st34, aes(x = condition, y = Stripe, fill = condition)) +
-  geom_boxplot(fatten = 0) +
+  geom_boxplot(fatten = NULL) +
   stat_summary(fun = mean, geom = "crossbar", 
                width = 0.75, color = "red", size = 0.2) +
   stat_boxplot(geom = "errorbar", width = 0.2) +
@@ -87,7 +91,8 @@ pic2 <- ggplot(st34, aes(x = condition, y = Stripe, fill = condition)) +
   stat_compare_means(
     comparisons = comparisons,
     method = "t.test",
-    label = "p.signif"
+    label = "p.signif",
+    hide.ns = T
   ) +
   theme_bw() +
   labs(x = "Condition", y = "Percent Length (%)") +
@@ -97,10 +102,12 @@ pic2 <- ggplot(st34, aes(x = condition, y = Stripe, fill = condition)) +
         axis.text = element_text(face = 'bold', size = 12),
         strip.text = element_text(face = "bold"),
         legend.key.size = unit(0.9, "cm"), 
-        legend.text = element_text(size = 12))
+        legend.text = element_text(size = 12),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank())
 
 pic3 <- ggplot(st567, aes(x = condition, y = Stripe, fill = condition)) +
-  geom_boxplot(fatten = 0) +
+  geom_boxplot(fatten = NULL) +
   stat_summary(fun = mean, geom = "crossbar", 
                width = 0.75, color = "red", size = 0.2) +
   stat_boxplot(geom = "errorbar", width = 0.2) +
@@ -109,7 +116,8 @@ pic3 <- ggplot(st567, aes(x = condition, y = Stripe, fill = condition)) +
   stat_compare_means(
     comparisons = comparisons,
     method = "t.test",
-    label = "p.signif"
+    label = "p.signif",
+    hide.ns = T
   ) +
   theme_bw() +
   labs(x = "Condition", y = "Percent Length (%)") +
@@ -119,15 +127,17 @@ pic3 <- ggplot(st567, aes(x = condition, y = Stripe, fill = condition)) +
         axis.text = element_text(face = 'bold', size = 12),
         strip.text = element_text(face = "bold"),
         legend.key.size = unit(0.9, "cm"), 
-        legend.text = element_text(size = 12))
+        legend.text = element_text(size = 12),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank())
 
 
 
-pic <- grid.arrange(pic1,pic2,pic3, ncol = 3, top = textGrob("Boxplot of stripe summary for Mass strain",
+pic <- grid.arrange(pic1,pic2,pic3, ncol = 3, top = textGrob("Boxplot of stripe summary for Oregon strain",
                                                       gp = gpar(fontsize = 16, fontface = "bold")))
 
 
-ggsave("/Users/shaheenkabir/METU/testing/MASS/stripe_plot_sig.png", plot = pic, 
-       width = 16, height = 9, dpi = 300, units = "in")
-ggsave("/Users/shaheenkabir/METU/testing/MASS/stripe_plot_sig.pdf", plot = pic, 
+#ggsave("/Users/shaheenkabir/eve_all_combined/plots/mass_sig.png", plot = pic, 
+ #      width = 16, height = 9, dpi = 300, units = "in")
+ggsave("/Users/shaheenkabir/eve_all_combined/plots/ORE_sig.pdf", plot = pic, 
        width = 16, height = 9, units = "in")

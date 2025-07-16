@@ -4,9 +4,9 @@ library(gridExtra)
 library(grid)
 library(ggpubr)
 
-df1 <- read_excel("/Users/shaheenkabir/METU/testing/MASS/mass_22/results/stripe_summary.xlsx", sheet = "7_Stripes")
-df2 <- read_excel("/Users/shaheenkabir/METU/testing/MASS/mass_25/results/stripe_summary.xlsx", sheet = "7_Stripes")
-df3 <- read_excel("/Users/shaheenkabir/METU/testing/MASS/mass_29/results/stripe_summary.xlsx", sheet = "7_Stripes")
+df1 <- read_excel("/Users/shaheenkabir/eve_all_combined/YW/YW_22/results/stripe_summary.xlsx", sheet = "7_Stripes")
+df2 <- read_excel("/Users/shaheenkabir/eve_all_combined/YW/YW_25/results/stripe_summary.xlsx", sheet = "7_Stripes")
+df3 <- read_excel("/Users/shaheenkabir/eve_all_combined/YW/YW_29/results/stripe_summary.xlsx", sheet = "7_Stripes")
 df1
 df1_st1 <- data.frame(Stripe = df1$`Stripe-1`) %>% mutate(condition = "22C")
 df1_st2 <- data.frame(Stripe = df1$`Stripe-2`) %>% mutate(condition = "22C")
@@ -53,21 +53,9 @@ st12 <- rbind(stripe1.df, stripe2.df)
 st34 <- rbind(stripe3.df, stripe4.df)
 st567 <- rbind(stripe5.df, stripe6.df, stripe7.df)
 
-ggplot(whole_stripe, aes(x = condition, y = Stripe, fill = condition)) +
-  geom_boxplot(fatten = 0, outliers = F) +
-  stat_summary(fun = mean, geom = "crossbar",  width = 0.75, color = "red", size = 0.2)+
-  stat_boxplot( geom = "errorbar",width = 0.2)+
-  facet_wrap(~ stripe, scales = "free_y", nrow = 1) +
-  theme_bw() +
-  labs(y = "Stripe Value", x = "Condition") +
-  theme(
-    strip.background = element_rect(fill = "grey90"),
-    strip.text = element_text(face = "bold")
-  )
-
 colors <- c("22C" = "#cce5ff", "25C" = "#3399ff", "29C" = "#003366") 
 pic1 <- ggplot(st12, aes(x = stripe, y = Stripe, fill = condition)) +
-  geom_boxplot(position = position_dodge(width = 0.8), fatten = 0) +
+  geom_boxplot(position = position_dodge(width = 0.8), fatten = NULL) +
   stat_summary(fun = mean, geom = "crossbar", 
                width = 0.75, color = "red", size = 0.2, 
                position = position_dodge(width = 0.8)) +
@@ -82,11 +70,13 @@ pic1 <- ggplot(st12, aes(x = stripe, y = Stripe, fill = condition)) +
         axis.title = element_text(face = 'bold',size = 12),
         axis.text = element_text(face = 'bold', size = 12),
         legend.key.size = unit(0.9, "cm"), 
-        legend.text = element_text(size = 12))
+        legend.text = element_text(size = 12),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank())
 
 
 pic2 <- ggplot(st34, aes(x = stripe, y = Stripe, fill = condition)) +
-  geom_boxplot(position = position_dodge(width = 0.8), fatten = 0) +
+  geom_boxplot(position = position_dodge(width = 0.8), fatten = NULL) +
   stat_summary(fun = mean, geom = "crossbar", 
                width = 0.75, color = "red", size = 0.2, 
                position = position_dodge(width = 0.8)) +
@@ -102,11 +92,13 @@ pic2 <- ggplot(st34, aes(x = stripe, y = Stripe, fill = condition)) +
         axis.text = element_text(face = 'bold', size = 12),
         axis.title.y = element_blank(),
         legend.key.size = unit(0.9, "cm"), 
-        legend.text = element_text(size = 12))
+        legend.text = element_text(size = 12),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank())
 
 
 pic3 <- ggplot(st567, aes(x = stripe, y = Stripe, fill = condition)) +
-  geom_boxplot(position = position_dodge(width = 0.8), fatten = 0) +
+  geom_boxplot(position = position_dodge(width = 0.8), fatten = NULL) +
   stat_summary(fun = mean, geom = "crossbar", 
                width = 0.75, color = "red", size = 0.2, 
                position = position_dodge(width = 0.8)) +
@@ -122,12 +114,13 @@ pic3 <- ggplot(st567, aes(x = stripe, y = Stripe, fill = condition)) +
         axis.text = element_text(face = 'bold', size = 12),
         axis.title.y = element_blank(),
         legend.key.size = unit(0.9, "cm"), 
-        legend.text = element_text(size = 12))
+        legend.text = element_text(size = 12),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank())
 
-pic <- grid.arrange(pic1,pic2,pic3, ncol = 3, top = textGrob("Boxplot of stripe summary for Mass strain",
+pic <- grid.arrange(pic1,pic2,pic3, ncol = 3, top = textGrob("Boxplot of stripe summary for YW strain",
                                                       gp = gpar(fontsize = 16, fontface = "bold")))
-ggsave("/Users/shaheenkabir/METU/testing/MASS/stripe_plot.png", plot = pic, 
-       width = 16, height = 9, dpi = 300, units = "in")
-ggsave("/Users/shaheenkabir/METU/testing/MASS/stripe_plot.pdf", plot = pic, 
+#ggsave("/Users/shaheenkabir/eve_all_combined/plots/mass.png", plot = pic, 
+ #      width = 16, height = 9, dpi = 300, units = "in")
+ggsave("/Users/shaheenkabir/eve_all_combined/plots/YW.pdf", plot = pic, 
        width = 16, height = 9, units = "in")
-
