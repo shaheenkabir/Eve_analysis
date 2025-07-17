@@ -1,3 +1,7 @@
+###-----------Onal_lab-------------###
+##----------Bilkent University----------##
+#---------Ankara, Turkey----------#
+
 import pandas as pd
 import numpy as np
 import os
@@ -11,17 +15,18 @@ from scipy.stats import ttest_ind
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-parent_folder = "/Users/shaheenkabir/parent/ISO2_eve"   # Change the folder name accordingly.
+# Constructing folder and file capture (Automation)
+parent_folder = "/Users/shaheenkabir/ISO2"   # Change the folder name accordingly.
 FOLDER_PATTERN = "ISO*"                                   # Change the pattern accordingly.
 log_path = os.path.join(parent_folder, "pipeline_log.txt")
 with open(log_path, "w") as log:
     log.write("=== Analysis Log -- Failures ===\n")
-
 matched_folders = sorted([
     os.path.join(parent_folder, d)
     for d in os.listdir(parent_folder)
     if os.path.isdir(os.path.join(parent_folder, d)) and re.fullmatch(FOLDER_PATTERN.replace("*", ".*"), d)
 ])
+# Starting parent-level analysis.
 for input_folder in matched_folders:
     print(f"\n📂 Starting analysis in: {input_folder}")
     output_folder = os.path.join(input_folder, "results")
@@ -79,7 +84,6 @@ for input_folder in matched_folders:
                 plt.savefig(temp_plot_path, dpi=200)
                 plt.close()
 
-                # Insert plot into Excel
                 wb = load_workbook(output_path)
                 ws = wb.active
                 img = XLImage(temp_plot_path)
@@ -103,7 +107,7 @@ for input_folder in matched_folders:
                         closest = change_df.iloc[(change_df["Percent Length"] - px).abs().argsort()[:1]]
                         closest_val = closest["Percent Length"].values[0]
                         closest_matches.append(closest_val)
-
+                # Using a cutoff to discard mismatched files.
                 if len(closest_matches) != 7:
                     with open(log_path, "a") as log:
                         log.write(f"❌ {filename}: Found {len(closest_matches)} stripes, not 7 → skipped.\n")
@@ -208,7 +212,7 @@ for input_folder in matched_folders:
             final_df.to_excel(writer, sheet_name=sheet_name, index=False)
 
     wb = load_workbook(summary_output_path)
-    ws = wb.active  # or wb["7_Stripes"] if you want to be explicit
+    ws = wb.active
     cols = list(range(2, 5))  # Columns B, C, D
     data = []
     n = ws.max_row
@@ -345,10 +349,8 @@ def load_stripe_column(folder_key, stripe_n):
         print(f"⚠️ Column '{col_name}' not found in '7_Stripes' sheet of {path}")
         return np.array([])
 
-# === Check if required folders exist ===
 required_groups = ["22", "25", "29"]
 missing = []
-print("Starting comparison between temperature groups.")
 
 for grp in required_groups:
     pattern = os.path.join(parent_folder, f"*_{grp}")
@@ -382,9 +384,6 @@ for group1, group2 in comparisons:
             blank_row = pd.DataFrame([[None, None]], columns=df.columns)
             t_stat, p_val = ttest_ind(data1, data2, equal_var=False, alternative='two-sided')
 
-            #if p_val > 0.5:
-             #   p_val = 1 - p_val
-
             t_stat_row = pd.DataFrame([["t-stat", t_stat]], columns=df.columns)
             p_val_row = pd.DataFrame([["p-value", p_val]], columns=df.columns)
             df = pd.concat([df, blank_row, t_stat_row, p_val_row], ignore_index=True)
@@ -396,7 +395,7 @@ for group1, group2 in comparisons:
             not_sig_fmt = workbook.add_format({'font_color': 'red'})
             sig_text = "Significant" if p_val < 0.05 else "Not Significant"
             sig_format = sig_fmt if p_val < 0.05 else not_sig_fmt
-            sig_row = len(df) + 2  # add +1 because Excel is 1-based indexing
+            sig_row = len(df) + 2
             worksheet.write(sig_row-1 , 1, sig_text, sig_format)
             sheets_added += 1
     if sheets_added == 0:
