@@ -5,9 +5,9 @@ library(grid)
 library(ggpubr)
 library(writexl)
 
-df1 <- read_excel("/Users/shaheenkabir/eve_all_combined/MASS/MASS_22/results/stripe_summary.xlsx", sheet = "7_Stripes")
-df2 <- read_excel("/Users/shaheenkabir/eve_all_combined/MASS/MASS_25/results/stripe_summary.xlsx", sheet = "7_Stripes")
-df3 <- read_excel("/Users/shaheenkabir/eve_all_combined/MASS/MASS_29/results/stripe_summary.xlsx", sheet = "7_Stripes")
+df1 <- read_excel("/Users/shaheenkabir/eve_all_combined/BK/BK_22/results/stripe_summary.xlsx", sheet = "7_Stripes")
+df2 <- read_excel("/Users/shaheenkabir/eve_all_combined/BK/BK_25/results/stripe_summary.xlsx", sheet = "7_Stripes")
+df3 <- read_excel("/Users/shaheenkabir/eve_all_combined/BK/BK_29/results/stripe_summary.xlsx", sheet = "7_Stripes")
 df1
 df1_st1 <- data.frame(Stripe = df1$`Stripe-1`) %>% mutate(condition = "22C")
 df1_st2 <- data.frame(Stripe = df1$`Stripe-2`) %>% mutate(condition = "22C")
